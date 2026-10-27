@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/i18n/context";
 import type { Calendar } from "@/lib/types";
 import { KIND_ICON } from "@/lib/types";
 import { canOpen, type Ymd } from "@/lib/date";
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function DoorGrid({ calendar, today, opened, onOpen }: Props) {
+  const { d, fill, decDate } = useI18n();
   const [shaking, setShaking] = useState<number | null>(null);
   const [hint, setHint] = useState<string | null>(null);
   const [justOpened, setJustOpened] = useState<number | null>(null);
@@ -36,7 +38,7 @@ export default function DoorGrid({ calendar, today, opened, onOpen }: Props) {
       return;
     }
     setShaking(n);
-    setHint(`Ușița ${n} se deschide pe ${n} decembrie`);
+    setHint(fill(d.door.hint, { n, date: decDate(calendar.year, n) }));
     setTimeout(() => setShaking(null), 500);
     setTimeout(() => setHint(null), 2200);
   }
@@ -52,7 +54,7 @@ export default function DoorGrid({ calendar, today, opened, onOpen }: Props) {
             <button
               key={n}
               onClick={() => click(n)}
-              aria-label={`Ușița ${n}${unlocked ? "" : ", încuiată"}`}
+              aria-label={fill(d.door.aria, { n }) + (unlocked ? "" : d.door.locked)}
               className={`door ${isOpen ? "door-open" : ""} ${shaking === n ? "door-shake" : ""} ${
                 n === 24 ? "door-big" : ""
               }`}

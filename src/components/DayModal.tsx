@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useI18n } from "@/i18n/context";
 import type { Day } from "@/lib/types";
 import { KIND_ICON } from "@/lib/types";
 
@@ -9,7 +10,10 @@ function youtubeId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-export default function DayModal({ day, onClose }: { day: Day; onClose: () => void }) {
+export default function DayModal({ day, year, onClose }: { day: Day; year: number; onClose: () => void }) {
+  const { d, decDate } = useI18n();
+  const m = d.modal;
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -28,13 +32,13 @@ export default function DayModal({ day, onClose }: { day: Day; onClose: () => vo
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm uppercase tracking-widest opacity-60">{day.n} decembrie</span>
-          <button onClick={onClose} className="btn-ghost" aria-label="Închide">
+          <span className="text-sm uppercase tracking-widest opacity-60">{decDate(year, day.n)}</span>
+          <button onClick={onClose} className="btn-ghost" aria-label={m.close}>
             ✕
           </button>
         </div>
         <h2 id="day-title" className="mb-3 text-2xl font-semibold">
-          {KIND_ICON[day.kind]} {day.title || "Surpriză"}
+          {KIND_ICON[day.kind]} {day.title || m.surprise}
         </h2>
 
         {day.kind === "image" && day.url && (
@@ -55,21 +59,19 @@ export default function DayModal({ day, onClose }: { day: Day; onClose: () => vo
             </div>
           ) : day.url ? (
             <a href={day.url} target="_blank" rel="noreferrer" className="btn mb-3 inline-block">
-              Deschide videoul
+              {m.openVideo}
             </a>
           ) : null)}
 
         {day.kind === "coupon" && (
           <div className="coupon mb-3">
-            <span className="text-xs uppercase tracking-widest opacity-70">Cod</span>
+            <span className="text-xs uppercase tracking-widest opacity-70">{m.code}</span>
             <span className="font-mono text-2xl font-bold">{day.code || "—"}</span>
           </div>
         )}
 
         {day.body && <p className="whitespace-pre-wrap text-lg leading-relaxed">{day.body}</p>}
-        {!day.body && !day.url && !day.code && (
-          <p className="opacity-60">Această zi nu are încă nimic în ea.</p>
-        )}
+        {!day.body && !day.url && !day.code && <p className="opacity-60">{m.empty}</p>}
       </div>
     </div>
   );

@@ -1,5 +1,8 @@
 import Link from "next/link";
 import Snow from "@/components/Snow";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { getDict } from "@/i18n";
+import { isLocale } from "@/i18n/locales";
 import { KIND_ICON } from "@/lib/types";
 
 // Scrambled numbers like a paper calendar; a few doors shown open as if it were 8 December.
@@ -14,32 +17,38 @@ const OPENED: Record<number, keyof typeof KIND_ICON> = {
   7: "coupon",
 };
 
-export default function Home() {
+export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const d = getDict(isLocale(locale) ? locale : "en");
+  const h = d.home;
+
   return (
-    <main className="relative mx-auto max-w-6xl px-4 py-12 sm:py-16">
+    <main className="relative mx-auto max-w-6xl px-4 py-8 sm:py-12">
       <Snow count={40} />
+      <header className="relative z-10 mb-8 flex items-center justify-between">
+        <span className="display text-xl">Advently</span>
+        <LanguageSwitcher />
+      </header>
+
       <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[1.05fr_1fr]">
         <div>
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent)" }}>
-            Advently · 1 decembrie
+            {h.eyebrow}
           </p>
           <h1 className="display mb-5 text-5xl leading-[1.02] sm:text-6xl lg:text-7xl">
-            24 de ușițe.
+            {h.h1a}
             <br />
-            <em style={{ color: "var(--accent)" }}>24 de surprize</em>
+            <em style={{ color: "var(--accent)" }}>{h.h1b}</em>
             <br />
-            pentru cineva drag.
+            {h.h1c}
           </h1>
-          <p className="mb-7 max-w-xl text-lg opacity-90">
-            Pui în fiecare zi un mesaj, o poză, un video sau un cupon. Trimiți un link. Ușițele se deschid doar în
-            ziua lor.
-          </p>
+          <p className="mb-7 max-w-xl text-lg opacity-90">{h.lead}</p>
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/create" className="btn">
-              Creează calendarul tău →
+            <Link href={`/${locale}/create`} className="btn">
+              {h.cta}
             </Link>
-            <Link href="/c?demo=1" className="btn-ghost">
-              Vezi un exemplu
+            <Link href={`/${locale}/c?demo=1`} className="btn-ghost">
+              {h.example}
             </Link>
           </div>
         </div>
@@ -64,9 +73,9 @@ export default function Home() {
 
       <ul className="relative z-10 mt-14 grid gap-4 sm:grid-cols-3">
         {[
-          ["Al tău, de la prima ușiță", "Mesaje, poze, videouri sau cupoane. Fiecare zi e scrisă de tine, pentru o singură persoană."],
-          ["Răbdarea face parte din cadou", "Ușițele se deblochează pe rând, după ora locală. Nu se poate trișa, oricât ai încerca."],
-          ["Un singur link", "Cine primește nu își face cont. Deschide link-ul de pe telefon și începe să aștepte ziua următoare."],
+          [h.f1t, h.f1],
+          [h.f2t, h.f2],
+          [h.f3t, h.f3],
         ].map(([title, text]) => (
           <li key={title} className="panel">
             <div className="display mb-1 text-lg">{title}</div>
