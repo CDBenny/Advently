@@ -19,8 +19,8 @@ export function decodeCalendar(s: string): Calendar | null {
   }
 }
 
-export function shareUrl(c: Calendar, origin: string): string {
-  return `${origin}/c#d=${encodeCalendar(c)}`;
+export function shareUrl(c: Calendar, origin: string, locale: string): string {
+  return `${origin}/${locale}/c#d=${encodeCalendar(c)}`;
 }
 
 export function readHashCalendar(): Calendar | null {

@@ -89,13 +89,6 @@ export const THEMES: Record<ThemeId, { name: string; vars: Record<string, string
   },
 };
 
-export const KIND_LABEL: Record<DayKind, string> = {
-  text: "Mesaj",
-  image: "Poză",
-  video: "Video",
-  coupon: "Cupon",
-};
-
 export const KIND_ICON: Record<DayKind, string> = {
   text: "💌",
   image: "📷",
@@ -103,10 +96,10 @@ export const KIND_ICON: Record<DayKind, string> = {
   coupon: "🎟️",
 };
 
-export function emptyCalendar(): Calendar {
+export function emptyCalendar(title: string): Calendar {
   return {
     v: 1,
-    title: "Calendarul meu de Advent",
+    title,
     to: "",
     from: "",
     theme: "clasic",
@@ -115,18 +108,32 @@ export function emptyCalendar(): Calendar {
   };
 }
 
-export function demoCalendar(): Calendar {
-  const c = emptyCalendar();
-  c.title = "Advent pentru Ana";
-  c.to = "Ana";
-  c.from = "Danny";
+// The demo texts come from the active language's dictionary.
+export interface DemoText {
+  title: string;
+  to: string;
+  from: string;
+  d1t: string;
+  d1: string;
+  d2t: string;
+  d3t: string;
+  d3: string;
+  d4t: string;
+  d5t: string;
+  d5: string;
+}
+
+export function demoCalendar(t: DemoText): Calendar {
+  const c = emptyCalendar(t.title);
+  c.to = t.to;
+  c.from = t.from;
   c.theme = "polar";
   const fill: Partial<Day>[] = [
-    { kind: "text", title: "Bun venit!", body: "A început decembrie. În fiecare zi te așteaptă ceva aici. ❄️" },
-    { kind: "image", title: "O amintire", url: "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=1200" },
-    { kind: "coupon", title: "Cupon de ciocolată caldă", code: "CIOCO-03", body: "Valabil oricând în decembrie." },
-    { kind: "video", title: "Melodia zilei", url: "https://www.youtube.com/watch?v=aAkMkVFwAoo" },
-    { kind: "text", title: "Întrebare", body: "Care e cea mai frumoasă amintire a ta de iarnă?" },
+    { kind: "text", title: t.d1t, body: t.d1 },
+    { kind: "image", title: t.d2t, url: "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?w=1200" },
+    { kind: "coupon", title: t.d3t, code: "CIOCO-03", body: t.d3 },
+    { kind: "video", title: t.d4t, url: "https://www.youtube.com/watch?v=aAkMkVFwAoo" },
+    { kind: "text", title: t.d5t, body: t.d5 },
   ];
   c.days = c.days.map((d, i) => ({ ...d, ...fill[i % fill.length], n: d.n }));
   return c;

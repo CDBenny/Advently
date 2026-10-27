@@ -2,20 +2,26 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { emptyCalendar, KIND_ICON, KIND_LABEL, THEMES, type Calendar, type Day, type DayKind, type ThemeId } from "@/lib/types";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useI18n } from "@/i18n/context";
+import { emptyCalendar, KIND_ICON, THEMES, type Calendar, type Day, type DayKind, type ThemeId } from "@/lib/types";
 import { shareUrl } from "@/lib/codec";
 
 const DRAFT_KEY = "advent:draft";
+const KINDS: DayKind[] = ["text", "image", "video", "coupon"];
 
 function isFilled(d: Day) {
   return Boolean(d.title || d.body || d.url || d.code);
 }
 
 export default function CreatePage() {
-  const [cal, setCal] = useState<Calendar>(emptyCalendar);
+  const { locale, d, fill } = useI18n();
+  const e = d.editor;
+  const [cal, setCal] = useState<Calendar>(() => emptyCalendar(e.defaultTitle));
   const [selected, setSelected] = useState(1);
   const [copied, setCopied] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   // Draft lives in the browser until we have accounts.
   useEffect(() => {
@@ -35,12 +41,12 @@ export default function CreatePage() {
   const day = cal.days[selected - 1];
   const filled = cal.days.filter(isFilled).length;
   const link = useMemo(
-    () => (typeof window === "undefined" ? "" : shareUrl(cal, window.location.origin)),
-    [cal],
+    () => (typeof window === "undefined" ? "" : shareUrl(cal, window.location.origin, locale)),
+    [cal, locale],
   );
 
   function patchDay(p: Partial<Day>) {
-    setCal((c) => ({ ...c, days: c.days.map((d) => (d.n === selected ? { ...d, ...p } : d)) }));
+    setCal((c) => ({ ...c, days: c.days.map((x) => (x.n === selected ? { ...x, ...p } : x)) }));
   }
 
   async function copy() {
@@ -52,44 +58,51 @@ export default function CreatePage() {
   }
 
   function reset() {
-    if (confirm("Ștergi tot conținutul calendarului?")) setCal(emptyCalendar());
+    if (!confirmReset) {
+      setConfirmReset(true);
+      setTimeout(() => setConfirmReset(false), 4000);
+      return;
+    }
+    setCal(emptyCalendar(e.defaultTitle));
+    setConfirmReset(false);
   }
 
   return (
     <div className="themed" style={THEMES[cal.theme].vars as React.CSSProperties}>
       <main className="mx-auto max-w-5xl px-4 py-8">
         <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <Link href="/" className="text-sm opacity-70 hover:opacity-100">
-            ← Înapoi
+          <Link href={`/${locale}`} className="text-sm opacity-70 hover:opacity-100">
+            {d.nav.back}
           </Link>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="opacity-70">{filled}/24 zile completate</span>
-            <button onClick={reset} className="btn-ghost">
-              Reset
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <LanguageSwitcher />
+            <span className="opacity-70">{fill(e.filled, { n: filled })}</span>
+            <button onClick={reset} className="btn-ghost" aria-live="polite">
+              {confirmReset ? e.resetConfirm : e.reset}
             </button>
           </div>
         </header>
 
-        <h1 className="mb-6 text-3xl font-bold">Creează calendarul</h1>
+        <h1 className="display mb-6 text-3xl">{e.title}</h1>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
           {/* Left: calendar settings + day tiles */}
           <section className="flex flex-col gap-4">
             <div className="panel grid gap-3 sm:grid-cols-2">
               <label className="field sm:col-span-2">
-                Titlu
-                <input value={cal.title} onChange={(e) => setCal({ ...cal, title: e.target.value })} />
+                {e.calTitle}
+                <input id="cal-title" value={cal.title} onChange={(ev) => setCal({ ...cal, title: ev.target.value })} />
               </label>
               <label className="field">
-                Pentru
-                <input placeholder="Ana" value={cal.to} onChange={(e) => setCal({ ...cal, to: e.target.value })} />
+                {e.forWhom}
+                <input id="cal-to" placeholder={d.demo.to} value={cal.to} onChange={(ev) => setCal({ ...cal, to: ev.target.value })} />
               </label>
               <label className="field">
-                De la
-                <input placeholder="Danny" value={cal.from} onChange={(e) => setCal({ ...cal, from: e.target.value })} />
+                {e.fromWhom}
+                <input id="cal-from" placeholder={d.demo.from} value={cal.from} onChange={(ev) => setCal({ ...cal, from: ev.target.value })} />
               </label>
               <div className="field sm:col-span-2">
-                Temă
+                {e.theme}
                 <div className="flex flex-wrap gap-2">
                   {(Object.keys(THEMES) as ThemeId[]).map((t) => (
                     <button
@@ -102,7 +115,7 @@ export default function CreatePage() {
                         className="inline-block h-4 w-4 rounded-full border border-white/40"
                         style={{ background: `linear-gradient(135deg, ${THEMES[t].vars["--bg"]}, ${THEMES[t].vars["--door"]})` }}
                       />
-                      {THEMES[t].name}
+                      {d.theme[t]}
                     </button>
                   ))}
                 </div>
@@ -110,17 +123,17 @@ export default function CreatePage() {
             </div>
 
             <div className="panel">
-              <p className="mb-3 text-sm opacity-70">Alege o zi și completează surpriza ei.</p>
+              <p className="mb-3 text-sm opacity-70">{e.pickDay}</p>
               <div className="grid grid-cols-6 gap-2">
-                {cal.days.map((d) => (
+                {cal.days.map((x) => (
                   <button
-                    key={d.n}
-                    onClick={() => setSelected(d.n)}
-                    className={`tile ${isFilled(d) ? "tile-filled" : ""} ${selected === d.n ? "tile-active" : ""}`}
-                    aria-label={`Ziua ${d.n}`}
+                    key={x.n}
+                    onClick={() => setSelected(x.n)}
+                    className={`tile ${isFilled(x) ? "tile-filled" : ""} ${selected === x.n ? "tile-active" : ""}`}
+                    aria-label={fill(e.dayAria, { n: x.n })}
                   >
-                    <span>{d.n}</span>
-                    {isFilled(d) && <span className="text-xs">{KIND_ICON[d.kind]}</span>}
+                    <span>{x.n}</span>
+                    {isFilled(x) && <span className="text-xs">{KIND_ICON[x.kind]}</span>}
                   </button>
                 ))}
               </div>
@@ -131,7 +144,7 @@ export default function CreatePage() {
           <section className="flex flex-col gap-4">
             <div className="panel flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">{selected} decembrie</h2>
+                <h2 className="display text-xl">{fill(e.dayAria, { n: selected })}</h2>
                 <div className="flex gap-1">
                   <button className="btn-ghost" onClick={() => setSelected(Math.max(1, selected - 1))} disabled={selected === 1}>
                     ‹
@@ -143,66 +156,64 @@ export default function CreatePage() {
               </div>
 
               <div className="field">
-                Tip de surpriză
+                {e.kind}
                 <div className="flex flex-wrap gap-2">
-                  {(Object.keys(KIND_LABEL) as DayKind[]).map((k) => (
+                  {KINDS.map((k) => (
                     <button
                       key={k}
                       onClick={() => patchDay({ kind: k })}
                       className={`btn-ghost ${day.kind === k ? "ring-2" : ""}`}
                       style={{ ["--tw-ring-color" as string]: "var(--accent)" }}
                     >
-                      {KIND_ICON[k]} {KIND_LABEL[k]}
+                      {KIND_ICON[k]} {d.kind[k]}
                     </button>
                   ))}
                 </div>
               </div>
 
               <label className="field">
-                Titlu
-                <input placeholder="Ex: O amintire de iarnă" value={day.title ?? ""} onChange={(e) => patchDay({ title: e.target.value })} />
+                {e.dayTitle}
+                <input id="day-title" placeholder={e.dayTitlePh} value={day.title ?? ""} onChange={(ev) => patchDay({ title: ev.target.value })} />
               </label>
 
               {day.kind === "image" && (
                 <label className="field">
-                  Link către poză
-                  <input placeholder="https://..." value={day.url ?? ""} onChange={(e) => patchDay({ url: e.target.value })} />
-                  <span className="text-xs opacity-60">În versiunea finală vei putea încărca poza direct.</span>
+                  {e.imageUrl}
+                  <input id="day-url" placeholder="https://..." value={day.url ?? ""} onChange={(ev) => patchDay({ url: ev.target.value })} />
+                  <span className="text-xs opacity-60">{e.imageNote}</span>
                 </label>
               )}
               {day.kind === "video" && (
                 <label className="field">
-                  Link YouTube
-                  <input placeholder="https://youtube.com/watch?v=..." value={day.url ?? ""} onChange={(e) => patchDay({ url: e.target.value })} />
+                  {e.videoUrl}
+                  <input id="day-url" placeholder="https://youtube.com/watch?v=..." value={day.url ?? ""} onChange={(ev) => patchDay({ url: ev.target.value })} />
                 </label>
               )}
               {day.kind === "coupon" && (
                 <label className="field">
-                  Cod cupon
-                  <input placeholder="CIOCO-03" value={day.code ?? ""} onChange={(e) => patchDay({ code: e.target.value })} />
+                  {e.code}
+                  <input id="day-code" placeholder="CIOCO-03" value={day.code ?? ""} onChange={(ev) => patchDay({ code: ev.target.value })} />
                 </label>
               )}
 
               <label className="field">
-                Mesaj
-                <textarea rows={4} placeholder="Scrie ceva frumos…" value={day.body ?? ""} onChange={(e) => patchDay({ body: e.target.value })} />
+                {e.message}
+                <textarea id="day-body" rows={4} placeholder={e.messagePh} value={day.body ?? ""} onChange={(ev) => patchDay({ body: ev.target.value })} />
               </label>
             </div>
 
             <div className="panel flex flex-col gap-3">
-              <h2 className="text-lg font-semibold">Trimite</h2>
-              <p className="text-sm opacity-70">
-                În prototip, tot calendarul e în link. Copiază-l și trimite-l; cine îl deschide vede ușițele.
-              </p>
+              <h2 className="display text-lg">{e.send}</h2>
+              <p className="text-sm opacity-70">{e.sendNote}</p>
               <div className="flex flex-wrap gap-2">
                 <button onClick={copy} className="btn">
-                  {copied ? "Copiat ✓" : "Copiază link-ul"}
+                  {copied ? e.copied : e.copy}
                 </button>
                 <a href={link} target="_blank" rel="noreferrer" className="btn-ghost">
-                  Previzualizează
+                  {e.preview}
                 </a>
               </div>
-              <input readOnly value={link} className="w-full rounded-lg bg-black/20 px-3 py-2 text-xs opacity-70" onFocus={(e) => e.target.select()} />
+              <input id="share-link" readOnly value={link} className="w-full rounded-lg bg-black/20 px-3 py-2 text-xs opacity-70" onFocus={(ev) => ev.target.select()} />
             </div>
           </section>
         </div>
