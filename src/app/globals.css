@@ -1,19 +1,25 @@
 @import "tailwindcss";
 
+/* Style A "Seară de iarnă": warm dark ground, candle-gold accent, Fraunces for display. */
 :root {
-  --bg: #7a1420;
-  --bg2: #3f0b12;
-  --door: #1f5a3a;
-  --door2: #13412a;
-  --accent: #f3c86b;
-  --ink: #fff8ee;
-  --card: #fff8ee;
+  --bg: #5e1220;
+  --bg2: #2a0a12;
+  --door: #1d5236;
+  --door2: #12381f;
+  --accent: #f0c56a;
+  --ink: #fff6e8;
+  --card: #fff6e8;
   --card-ink: #2a1a12;
 }
 
+/* next/font sets --font-fraunces and --font-inter on <body>, so the role tokens live there too. */
+body {
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+}
+
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
 html,
@@ -23,15 +29,22 @@ body {
 
 body {
   color: var(--ink);
-  background: radial-gradient(ellipse at top, var(--bg) 0%, var(--bg2) 70%);
+  background: radial-gradient(ellipse at 50% -10%, var(--bg) 0%, var(--bg2) 70%);
   background-attachment: fixed;
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 
 .themed {
   color: var(--ink);
-  background: radial-gradient(ellipse at top, var(--bg) 0%, var(--bg2) 70%);
+  background: radial-gradient(ellipse at 50% -10%, var(--bg) 0%, var(--bg2) 70%);
   min-height: 100dvh;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
 /* ---------- buttons ---------- */
@@ -39,7 +52,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
+  padding: 0.8rem 1.4rem;
   border-radius: 999px;
   background: var(--accent);
   color: var(--bg2);
@@ -93,8 +106,8 @@ body {
 }
 .door-front {
   background: linear-gradient(145deg, var(--door) 0%, var(--door2) 100%);
-  border: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  box-shadow: inset 0 0 0 6px color-mix(in srgb, var(--bg2) 25%, transparent), 0 8px 20px -10px #000;
+  border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: inset 0 0 0 5px color-mix(in srgb, var(--bg2) 25%, transparent), 0 10px 22px -14px #000;
   transform-origin: left center;
   transform-style: preserve-3d;
   transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
@@ -108,8 +121,9 @@ body {
   box-shadow: none;
 }
 .door-num {
-  font-size: clamp(1.4rem, 4vw, 2.2rem);
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2.4rem);
+  font-weight: 500;
   color: var(--accent);
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
   font-variant-numeric: tabular-nums;
@@ -170,6 +184,42 @@ body {
   z-index: 40;
 }
 
+/* ---------- confetti burst when a door opens ---------- */
+.confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.confetti i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: burst 0.9s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+  animation-delay: 0.35s;
+  opacity: 0;
+}
+.confetti i:nth-child(odd) {
+  background: var(--card);
+}
+.confetti i:nth-child(3n) {
+  background: color-mix(in srgb, var(--accent) 60%, #ff6b57);
+}
+@keyframes burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(540deg) scale(1);
+  }
+}
+
 /* ---------- modal ---------- */
 .modal-backdrop {
   position: fixed;
@@ -194,6 +244,10 @@ body {
   overflow: auto;
   box-shadow: 0 30px 60px -20px #000;
   animation: pop 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.modal h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
 }
 .modal .btn-ghost {
   border-color: color-mix(in srgb, var(--card-ink) 25%, transparent);
@@ -242,7 +296,8 @@ body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .snow {
+  .snow,
+  .confetti {
     display: none;
   }
   .door-front {

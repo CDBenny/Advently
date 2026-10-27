@@ -1,24 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin", "latin-ext"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin", "latin-ext"],
+  axes: ["opsz"],
 });
 
 export const metadata: Metadata = {
-  title: "Advent Kalendar",
-  description: "Creează un calendar de Advent cu 24 de surprize și trimite-l ca link.",
+  title: "Advently",
+  description: "24 de ușițe, 24 de surprize pentru cineva drag. Creezi calendarul, trimiți un link.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#3f0b12",
+  themeColor: "#2a0a12",
 };
 
 export default function RootLayout({
@@ -28,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ro">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+      <body className={`${inter.variable} ${fraunces.variable} antialiased`}>{children}</body>
     </html>
   );
 }

@@ -9,7 +9,7 @@ export interface Day {
   code?: string; // coupon code
 }
 
-export type ThemeId = "clasic" | "polar" | "aur" | "padure";
+export type ThemeId = "clasic" | "polar" | "aur" | "padure" | "zapada";
 
 export interface Calendar {
   v: 1;
@@ -23,16 +23,29 @@ export interface Calendar {
 
 export const THEMES: Record<ThemeId, { name: string; vars: Record<string, string> }> = {
   clasic: {
-    name: "Clasic",
+    name: "Seară de iarnă",
     vars: {
-      "--bg": "#7a1420",
-      "--bg2": "#3f0b12",
-      "--door": "#1f5a3a",
-      "--door2": "#13412a",
-      "--accent": "#f3c86b",
-      "--ink": "#fff8ee",
-      "--card": "#fff8ee",
+      "--bg": "#5e1220",
+      "--bg2": "#2a0a12",
+      "--door": "#1d5236",
+      "--door2": "#12381f",
+      "--accent": "#f0c56a",
+      "--ink": "#fff6e8",
+      "--card": "#fff6e8",
       "--card-ink": "#2a1a12",
+    },
+  },
+  zapada: {
+    name: "Zăpadă",
+    vars: {
+      "--bg": "#f3f7fb",
+      "--bg2": "#dfe9f3",
+      "--door": "#cfeee0",
+      "--door2": "#b9e2cf",
+      "--accent": "#e4553f",
+      "--ink": "#163a2c",
+      "--card": "#ffffff",
+      "--card-ink": "#163a2c",
     },
   },
   polar: {
